@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: admin-order-query-performance
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5432/utkrusht_orders
+    username: app_user
+    password: ""
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+        generate_statistics: false
+        query:
+          fail_on_pagination_over_collection_fetch: true
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  level:
+    root: INFO
+    com.company: INFO
+    org.hibernate.SQL: INFO

@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    user: postgres
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      'rm -rf /tmp/pgdata &&
+      initdb -D /tmp/pgdata -A trust &&
+      echo "host all all all trust" >> /tmp/pgdata/pg_hba.conf &&
+      pg_ctl -D /tmp/pgdata -o "-c listen_addresses='"'"'*'"'"'" -w start &&
+      psql -v ON_ERROR_STOP=1 -d postgres -f /docker-entrypoint-initdb.d/init_database.sql &&
+      tail -f /dev/null'
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ./init_database.sql:/docker-entrypoint-initdb.d/init_database.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app_user -d utkrusht_orders"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["--spring.datasource.url=jdbc:postgresql://postgres:5432/utkrusht_orders"]
+    ports:
+      - "127.0.0.1:8080:8080"
